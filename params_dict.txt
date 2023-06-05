@@ -1,0 +1,13 @@
+{
+        'main_plat_name':       'NPOL', 
+        'nexrad_88D_ID':        'KDOX',
+        'center_on':            'WFFPad', 
+        'box_spacing':          500,
+        'box_limit':            5000, 
+        'vert_spacing':         250,
+        'vert_limit':           6000, 
+        'halftime_interval':    5, 
+        'data_dir':             '/home/cpabla/SIMBA/github/data',
+        'output_dir':           '/home/cpabla/SIMBA/github/output',
+        'dpr_version':          'V06A'
+}
