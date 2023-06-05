@@ -20,8 +20,8 @@ class PiecewiseNorm(Normalize):
 
 def column_grid_reflectivity(x, y, twodvd_data, apu_data, radar_data, case_date, levels = None, png=False):
 
-    x = x.data/1000. #convert to km
-    y = y.data/1000. #convert to km
+    x = x/1000. #convert to km
+    y = y/1000. #convert to km
     
     fig, ax = plt.subplots(figsize=(12, 8))
     
@@ -74,8 +74,8 @@ def column_grid_reflectivity(x, y, twodvd_data, apu_data, radar_data, case_date,
         
 def column_grid_rain(x, y, twodvd_data, apu_data, radar_data, case_date, levels = None, png=False):
 
-    x = x.data/1000. #convert to km
-    y = y.data/1000. #convert to km
+    x = x/1000. #convert to km
+    y = y/1000. #convert to km
     
     fig, ax = plt.subplots(figsize=(12, 8))
     

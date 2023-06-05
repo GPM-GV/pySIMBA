@@ -4158,8 +4158,8 @@ class BuildColumn(object):
         full_grid_filename = f'{file_basename.split(".")[0]}_cntron_{self.center_on}'
         full_grid_name = f'{self.full_grid_dir}{full_grid_filename}.nc'
         DS = grid.to_xarray()
-        DS = DS.swap_dims({"x": "lon"})
-        DS = DS.swap_dims({"y": "lat"})
+        #DS = DS.swap_dims({"x": "lon"})
+        #DS = DS.swap_dims({"y": "lat"})
         DS.to_netcdf(full_grid_name, format='NETCDF4')
     
         #extract fields & attributes 
