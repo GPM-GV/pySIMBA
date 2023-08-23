@@ -1,8 +1,381 @@
+import os, sys, glob
+from datetime import datetime
 import pandas as pd
 import numpy as np
 import pdb
 import math
 from scipy import optimize
+import tools as sim
+
+def get_mrr_for_column(mrr_files, interval_datetime, box_params, column):
+
+    #Make sure input same number of mrr IDs & mrr files:
+    #if len(mrr_IDs) != len(files_mrr):
+    #    print(' --- INCORRECT NUMBER OF INPUT ELEMENTS FOR --- ')
+    #    print(' ---     mrr_IDs     and    files_mrr_ave   --- ')
+    #    print(' --- CHECK INPUT MRR IDs & .ave FILE PATHS! --- ')
+    #    print(' --- MRR(s) NOT BEING SET INTO COLUMN GRID  --- ')
+    #    return -1
+    
+    #files_mrr = glob.glob(self.mrr_dir+f'/{self.main_mon}{self.main_day}.ave')
+    #mrr_IDs=['mrr2-02'] ##NEED TO CHANGE THIS
+    
+    #print(self.interval_datetime[0].strftime(f'%Y%m%d%H%M'))
+    #print(self.interval_datetime[self.halftime_interval].strftime(f'%Y%m%d%H%M'))
+    #print(self.interval_datetime[-1].strftime(f'%Y%m%d%H%M'))
+    #print('TESTING ^^^ -- comment out')
+    
+    # Define holder arrays for info & data fields before loop thru files:
+    mrr_lat_d_array = [-9999]
+    mrr_lat_m_array = [-9999]
+    mrr_lat_s_array = [-9999]
+    mrr_lon_d_array = [-9999]
+    mrr_lon_m_array = [-9999]
+    mrr_lon_s_array = [-9999]
+    mrr_elev_array  = [-9999]
+    mrr_plat_name_array = ['DUMMY']     #unit name, eg: 'MRR-01'
+    mrr_plat_type_array = ['DUMMY']     #plat type, eg: 'MRR'
+    mrr_op_mode_array = ['DUMMY']       #operation mode, eg: 'MRR'
+    mrr_wavelength_array = [-9999]
+    mrr_frequency_array  = [-9999]
+    mrr_beam_width_array = [-9999]
+    mrr_gate_size_array  = [-9999]
+    mrr_plat_timestamp_array = ['DUMMY']
+    mrr_offset_array = [-9999]
+    mrr_int_width_array = [-9999]
+    
+    #define arrays with col grid dims, will populate in loop w/ MRR data for unit(s) in the box:
+    #  THESE ARE EACH 4-D ARRAY [column z dir  X  column x dir  X  column y dir  X  times in interval ]:
+    #col_dims = (n_interval_times, len(self.column_box_params['column_grid_lons']),  len(self.column_box_params['column_grid_lats']),  len(self.column_box_params['column_grid_alts'])  )
+    mrr_PIA = np.full(box_params.ground_plat_dims, np.nan)
+    mrr_aRef= np.full(box_params.ground_plat_dims, np.nan)
+    mrr_ref = np.full(box_params.ground_plat_dims, np.nan)
+    mrr_RR  = np.full(box_params.ground_plat_dims, np.nan)
+    mrr_LWC = np.full(box_params.ground_plat_dims, np.nan)
+    mrr_VEL = np.full(box_params.ground_plat_dims, np.nan)
+    mrr_disdro_Dm = np.full(box_params.ground_plat_dims, np.nan)
+    mrr_disdro_Nw = np.full(box_params.ground_plat_dims, np.nan)
+    mrr_disdro_Z  = np.full(box_params.ground_plat_dims, np.nan)
+    mrr_ref_ku_adj = np.full(box_params.ground_plat_dims, np.nan)
+    mrr_data_quality = np.full(box_params.ground_plat_dims, np.nan)
+    
+    #define variable names and units
+    mrr_PIA_name = 'two-way integrated attenuation'
+    mrr_aRef_name = 'attenuated reflectivity'
+    mrr_ref_name = 'reflectivity corrected for attenuation due to raindrops'
+    mrr_refKu_name = 'reflectivity converted to ku using observed DSDs'
+    mrr_RR_name = 'rainrate'
+    mrr_LWC_name = 'liquid water content'
+    mrr_WVEL_name = 'velocity: capital W'
+    mrr_disdro_Dm_name = 'mass-weighted mean diameter computed from DSD profile'
+    mrr_disdro_Nw_name = 'normalized intercept parameter computed from DSD profile'
+    mrr_disdro_Z_name = 'radar reflectivity computed from DSD profile'
+    mrr_data_quality_name = '% of valid spectra during the .ave interval'
+    mrr_units_PIA = 'dB'
+    mrr_units_ref = 'dBZ'
+    mrr_units_RR = 'mm h^-1'
+    mrr_units_LWC = 'g m^-3'
+    mrr_units_WVEL = 'm s^-1'
+    mrr_units_disdro_Dm = 'mm'
+    mrr_units_disdro_Nw = 'log(Nw)'
+    mrr_units_disdro_Z = 'dBZ'
+    mrr_units_data_quality = '%'
+    
+    # Will need to loop through input list of MRR units:
+    #for i, mrr_id in enumerate(mrr_IDs):
+    for i, file_mrr in enumerate(mrr_files):
+        #file_mrr = files_mrr[i]
+        mrr_id = os.path.basename(file_mrr)[0:7]
+    
+        # Set initial mrr_plat_info values:
+        #pdb.set_trace()
+        mrr_plat_info  = sim.set_plat_values(mrr_id.upper(), file_mrr)
+        unit_elevation = mrr_plat_info['elev']
+    
+        #get subscript where MRR is closest to a column grid point:
+        mrr_loc_decdeg = sim.dms2dd(mrr_plat_info['lat_d'], mrr_plat_info['lat_m'], mrr_plat_info['lat_s'], 
+                                mrr_plat_info['lon_d'], mrr_plat_info['lon_m'], mrr_plat_info['lon_s'])
+        mrr_lat = mrr_loc_decdeg[0]
+        mrr_lon = mrr_loc_decdeg[1]
+        lat_ok = 'N'
+        lon_ok = 'N'
+        if mrr_lat <= box_params.box_max_lat and mrr_lat >= box_params.box_min_lat: lat_ok = 'Y'
+        if mrr_lon <= box_params.box_max_lon and mrr_lon >= box_params.box_min_lon: lon_ok = 'Y'
+        if lat_ok == 'N' and lon_ok == 'N':
+            print('------------------------------------------------')
+            print('-------- before reading .ave file --------------')
+            print('---APPEARS THIS MRR IS NOT IN THE COLUMN BOX!---')
+            print(f'-------plat_name: {mrr_plat_info["plat_name"]}')
+            print('-------NOTICE: MRR data NOT SET IN column grid!')
+            mrr_info = np.nan
+            continue # so will only continue from here & read in mrr file if location is OK
+    
+        # Call read_data_mrr Function to read in MRR .ave data:
+        data = read_mrr2(file_mrr)
+        #  data structure returned has keys:
+        #  timestamp     avg_interval_sec  gate_size_m
+        #  samp_rate_hz  radar_alt_mASL    gate_hts_m
+        #  data_quality  mrrD (00-63)      mrrN (00-63) both are [64, n_times, n_gates]
+        #  PIA           attenRef          ref
+        #  rainRate      LWC               velocity
+        mrr_datestr = data['timestamp'] #format is YYMMDDHHMMSS  200104000002
+        mrr_datetime = sim.datestr2datetime(mrr_datestr)
+        
+        #mrr_yr = strmid(data.timestamp, 0, 2)		#these are all arrays:
+        #mrr_mon= strmid(data.timestamp, 2, 2)
+        ##mrr_day= strmid(data.timestamp, 4, 2)
+        #mrr_hr = strmid(data.timestamp, 6, 2)
+        #mrr_min= strmid(data.timestamp, 8, 2)
+        #mrr_sec= strmid(data.timestamp, 10, 2)
+        mrr_plat_info['gate_size'] = data['gate_size_m']
+
+        # get mrr gate hts info that will be same for all times from this unit:
+        mrr_gate_heights = data['gate_hts_m']*1.0
+        mrr_heights      = mrr_gate_heights + unit_elevation
+
+        # Look for MRR values for ea min in the time interval:
+        mrr_unit_in_column_test_cnt = 0
+        for t, this_date in enumerate(interval_datetime):
+            time_sub = np.where(mrr_datetime == this_date)[0]
+            if len(time_sub) < 1:
+                continue # this time is not available in mrr data
+            elif len(time_sub) > 1:
+                #found > ONE MRR time corresponding to this interval time:
+                #this very highly unlikely as the MRR .ave files (SIMBA input) typically use 60 s averaging interval - will set
+                #here to use 1st element that matches the interval time in case it occurs, but shouldn't really ever get here:
+                print(f'HAVE MORE THAN 1 TIME MATCH FOR {this_date.strftime("%H")}')
+                print(f' in ave file: {os.path.basename(file_mrr)}')
+                print('---Returning without MRR data in the column---')
+                return column
+
+            #Location is OK, and current interval time is OK - so proceed:
+            #  Increment counter, set attributes
+            mrr_unit_in_column_test_cnt = mrr_unit_in_column_test_cnt +1
+            if mrr_unit_in_column_test_cnt == 1:
+                print('    MRR unit located in column box AND available during time interval')
+                mrr_lat_d_array.append(mrr_plat_info['lat_d'])
+                mrr_lat_m_array.append(mrr_plat_info['lat_m'])
+                mrr_lat_s_array.append(mrr_plat_info['lat_s'])
+                mrr_lon_d_array.append(mrr_plat_info['lon_d'])
+                mrr_lon_m_array.append(mrr_plat_info['lon_m'])
+                mrr_lon_s_array.append(mrr_plat_info['lon_s'])
+                mrr_elev_array.append(mrr_plat_info['elev'])
+                mrr_plat_name_array.append(mrr_plat_info['plat_name'])
+                mrr_plat_type_array.append(mrr_plat_info['plat_type'])
+                mrr_op_mode_array.append(mrr_plat_info['operation_mode'])
+                mrr_wavelength_array.append(mrr_plat_info['wavelength'])
+                mrr_frequency_array.append(mrr_plat_info['frequency'])
+                mrr_beam_width_array.append(mrr_plat_info['beam_width'])
+                mrr_gate_size_array.append(mrr_plat_info['gate_size'])
+                mrr_int_width_array.append(box_params.halftime_interval)
+                # just will set main_plat time w/ sec as '00' since using an interval of data
+                #mrr_plat_timestamp_array.append(self.main_year+self.main_mon+self.main_day+'_'+self.main_hr+self.main_min+'00')
+                mrr_plat_timestamp_array.append(column.time)
+                mrr_offset_array.append(0)
+
+            # Find the (horizontal) column grid point closest to the MRR -> place MRR values at this point
+            # -> arrays of the MRR data currently set up as 1-D arrays: [ht] in the column box
+            # -> arrays that will set data into were defined above this loop & have same dims as column box grid + time [time interval, lon, lat, elev]
+            # NOTE: will maintain original MRR location in plat_info for attributes
+            closest_col_lat_sub = sim.closest(box_params.lat_values, mrr_lat)[0]
+            closest_col_lon_sub = sim.closest(box_params.lon_values, mrr_lon)[0]
+            #print, 'closest grid lat, lon: ',column_box_params.column_grid_lats[closest_col_lat_sub], column_box_params.column_grid_lons[closest_col_lon_sub]
+            #print(f'closest grid lat, lon: {self.column_box_params["column_grid_lats"][closest_col_lat_sub]} , {self.column_box_params["column_grid_lons"][closest_col_lon_sub]}')
+
+            # Get the MRR data for this time:  remember data['mrrD'] and data['mrrN'] are in [64, n_times, n_gates] format
+            time_sub = time_sub[0] #time_sub is now an integer; before numpy where returned an array
+            mrrD = data['mrrD'][:,time_sub,:] #should be a 2D array [64, n_gates]
+            mrrN = data['mrrN'][:,time_sub,:]
+            
+            # These are in [n_times, n_gates]
+            PIA        = data['PIA'][time_sub,:]
+            attenRef   = data['attenRef'][time_sub,:]
+            ref        = data['ref'][time_sub,:]
+            rainRate   = data['rainRate'][time_sub,:]
+            LWC        = data['LWC'][time_sub,:]
+            velocity   = data['velocity'][time_sub,:]
+            quality    = data['data_quality'][time_sub]
+    
+            # Prepare for input to disdro code/module from Patrick Gatlin to compute Dm, Nw, Z profile
+            #  these input arrays need to be set up as [# of bins x # of hts]  (assumes always have 64 drop size bins)
+            N_of_D_array = mrrN
+            D_bins_array = mrrD
+            #pdb.set_trace()
+
+            #Call disdro_mrr_get_dsd_params.py:  use /no_fit bc only am after Dm, Nw, & Z             
+            disdro_result = get_dsd_params(N_of_D_array, D_bins_array, mrr_gate_heights, no_fit=True)
+            disdro_Dm = disdro_result['dm']             #[mm]
+            disdro_Nw = disdro_result['nw']             #just Nw (NOT log(Nw))
+            disdro_Z  = disdro_result['reflectivity']   #[dBZ]
+            #pdb.set_trace()
+            
+            # Interpolate in the vertical to match column grid levels:  for profile fields from .ave file
+            # use scipy interpolate function to get val from MRR hts to column grid hts:
+            col_PIA         = sim.interp(PIA, mrr_heights, box_params.z_values)
+            col_rainRate    = sim.interp(rainRate, mrr_heights, box_params.z_values)
+            col_LWC         = sim.interp(LWC, mrr_heights, box_params.z_values)
+            col_velocity    = sim.interp(velocity, mrr_heights, box_params.z_values)
+            #pdb.set_trace()
+            # For reflectivity & Nw:  get INTERPOL results for LINEAR UNITS, then put into LOG UNITS after
+            orig_lin_aRef    = 10.0**((attenRef)/10.0)
+            orig_lin_ref     = 10.0**((ref)/10.0)
+            orig_lin_disdro_Z= 10.0**((disdro_Z)/10.0)
+            col_attenRef  = sim.interp(orig_lin_aRef, mrr_heights, box_params.z_values)
+            col_ref       = sim.interp(orig_lin_ref, mrr_heights, box_params.z_values)
+            col_disdro_Z  = sim.interp(orig_lin_disdro_Z, mrr_heights, box_params.z_values)
+            col_disdro_Nw = sim.interp(disdro_Nw, mrr_heights, box_params.z_values)
+            col_disdro_Dm = sim.interp(disdro_Dm, mrr_heights, box_params.z_values)
+            #pdb.set_trace()
+            
+            # put reflectivities & Nw into log units:
+            col_disdro_Z  = 10*np.log10(col_disdro_Z) #[dBZ]
+            col_disdro_Nw = np.log10(col_disdro_Nw)   #[log(Nw)]
+            col_ref       = 10*np.log10(col_ref)      #[dBZ]
+            col_ref_ku_adj = 0.974*col_ref - 0.097    #[dBZ] - derived using Wallops 2DVD DSD and radar model following Liao et al. 2020 method
+            col_attenRef  = 10*np.log10(col_attenRef) #[dBZ]
+            #pdb.set_trace()
+     
+            # Ensure have NaNs where should be:
+            low_hts  = np.where(box_params.z_values < min(mrr_heights))[0]
+            high_hts = np.where(box_params.z_values > max(mrr_heights))[0]
+            if len(low_hts) > 0:
+                col_PIA[low_hts]        = np.nan
+                col_attenRef[low_hts]   = np.nan
+                col_ref[low_hts]        = np.nan
+                col_ref_ku_adj[low_hts] = np.nan
+                col_rainRate[low_hts]   = np.nan
+                col_LWC[low_hts]        = np.nan
+                col_velocity[low_hts]   = np.nan
+                col_disdro_Z[low_hts]   = np.nan
+                col_disdro_Dm[low_hts]  = np.nan
+                col_disdro_Nw[low_hts]  = np.nan
+
+            if len(high_hts) > 0:
+                col_PIA[high_hts]        = np.nan
+                col_attenRef[high_hts]   = np.nan
+                col_ref[high_hts]        = np.nan
+                col_ref_ku_adj[high_hts] = np.nan
+                col_rainRate[high_hts]   = np.nan
+                col_LWC[high_hts]        = np.nan
+                col_velocity[high_hts]   = np.nan
+                col_disdro_Z[high_hts]   = np.nan
+                col_disdro_Dm[high_hts]  = np.nan
+                col_disdro_Nw[high_hts]  = np.nan
+            #Set values into the column grid arrays for THIS time for THIS unit:
+            mrr_PIA[:, closest_col_lat_sub,closest_col_lon_sub,t]         = col_PIA
+            mrr_aRef[:, closest_col_lat_sub,closest_col_lon_sub,t]        = col_attenRef
+            mrr_ref[:, closest_col_lat_sub,closest_col_lon_sub,t]         = col_ref
+            mrr_RR[:, closest_col_lat_sub,closest_col_lon_sub,t]          = col_rainRate
+            mrr_LWC[:, closest_col_lat_sub,closest_col_lon_sub,t]         = col_LWC
+            mrr_VEL[:, closest_col_lat_sub,closest_col_lon_sub,t]         = col_velocity
+            mrr_disdro_Z[:, closest_col_lat_sub,closest_col_lon_sub,t]    = col_disdro_Z
+            mrr_ref_ku_adj[:, closest_col_lat_sub,closest_col_lon_sub,t]  = col_ref_ku_adj
+            mrr_disdro_Dm[:, closest_col_lat_sub,closest_col_lon_sub,t]   = col_disdro_Dm
+            mrr_disdro_Nw[:, closest_col_lat_sub,closest_col_lon_sub,t]   = col_disdro_Nw
+            mrr_data_quality[:, closest_col_lat_sub,closest_col_lon_sub, 0] = quality
+
+    # Remove dummy/placeholder elements of info arrays:
+    if len(mrr_lat_d_array) > 1:
+        mrr_lat_d_array         = mrr_lat_d_array[1:]
+        mrr_lat_m_array         = mrr_lat_m_array[1:]
+        mrr_lat_s_array         = mrr_lat_s_array[1:]
+        mrr_lon_d_array         = mrr_lon_d_array[1:]
+        mrr_lon_m_array         = mrr_lon_m_array[1:]
+        mrr_lon_s_array         = mrr_lon_s_array[1:]
+        mrr_elev_array          = mrr_elev_array[1:]
+        mrr_plat_name_array     = mrr_plat_name_array[1:]
+        mrr_plat_type_array     = mrr_plat_type_array[1:]
+        mrr_op_mode_array       = mrr_op_mode_array[1:]
+        mrr_wavelength_array    = mrr_wavelength_array[1:]
+        mrr_frequency_array     = mrr_frequency_array[1:]
+        mrr_beam_width_array    = mrr_beam_width_array[1:]
+        mrr_gate_size_array     = mrr_gate_size_array[1:]
+        mrr_plat_timestamp_array = mrr_plat_timestamp_array[1:]
+        mrr_offset_array         = mrr_offset_array[1:]
+        mrr_int_width_array      = mrr_int_width_array[1:]
+    else:
+        #don't have any MRR units in the column box and/or main_plat time is unavailable
+        print('--- There are no MRR units in the column box and/or main plat time is unavailable---')
+        print('---Returning without MRR data in the column---')
+        return column
+    
+    
+    #Set up dictionary
+    mrr_info = {'plat_name':mrr_plat_name_array,
+                'lat_d':mrr_lat_d_array, 'lat_m':mrr_lat_m_array, 'lat_s':mrr_lat_s_array,
+                'lon_d':mrr_lon_d_array, 'lon_m':mrr_lon_m_array, 'lon_s':mrr_lon_s_array,
+                'elev':mrr_elev_array, 
+                'plat_type':mrr_plat_type_array,
+                'operation_mode':mrr_op_mode_array,
+                'wavelength':mrr_wavelength_array,
+                'frequency':mrr_frequency_array,
+                'beam_width':mrr_beam_width_array,
+                'gate_size':mrr_gate_size_array,
+                'timestamp':mrr_plat_timestamp_array,
+                'offset_vs_main':mrr_offset_array,
+                'time_interval_width':mrr_int_width_array }
+
+    #add mrr_info to object
+    column.add_platform_to_object(mrr_info, plat_name='mrr')
+
+    #assign each field to column object
+    column.add_variable_to_object(mrr_PIA, 
+                                  var_name='mrr_PIA', 
+                                  units=mrr_units_PIA,
+                                  long_name=mrr_PIA_name)
+
+    column.add_variable_to_object(mrr_aRef, 
+                                  var_name='mrr_aRef', 
+                                  units=mrr_units_ref,
+                                  long_name=mrr_aRef_name)
+
+    column.add_variable_to_object(mrr_ref, 
+                                  var_name='mrr_ref', 
+                                  units=mrr_units_ref,
+                                  long_name=mrr_ref_name)
+
+    column.add_variable_to_object(mrr_ref_ku_adj, 
+                                  var_name='mrr_refKu', 
+                                  units=mrr_units_ref,
+                                  long_name=mrr_refKu_name)
+
+    column.add_variable_to_object(mrr_RR, 
+                                  var_name='mrr_RR', 
+                                  units=mrr_units_RR,
+                                  long_name=mrr_RR_name)
+
+    column.add_variable_to_object(mrr_LWC, 
+                                  var_name='mrr_LWC', 
+                                  units=mrr_units_LWC,
+                                  long_name=mrr_LWC_name)
+
+    column.add_variable_to_object(mrr_VEL, 
+                                  var_name='mrr_WVEL', 
+                                  units=mrr_units_WVEL,
+                                  long_name=mrr_WVEL_name)
+
+    column.add_variable_to_object(mrr_disdro_Dm, 
+                                  var_name='mrr_disdro_dm', 
+                                  units=mrr_units_disdro_Dm,
+                                  long_name=mrr_disdro_Dm_name)
+
+    column.add_variable_to_object(mrr_disdro_Nw, 
+                                  var_name='mrr_disdro_Nw', 
+                                  units=mrr_units_disdro_Nw,
+                                  long_name=mrr_disdro_Nw_name)
+
+    column.add_variable_to_object(mrr_disdro_Z, 
+                                  var_name='mrr_disdro_Z', 
+                                  units=mrr_units_ref,
+                                  long_name=mrr_disdro_Z_name)
+
+    column.add_variable_to_object(mrr_data_quality, 
+                                  var_name='mrr_data_quality', 
+                                  units=mrr_units_data_quality,
+                                  long_name=mrr_data_quality_name)
+
+    return column
+    #self.mrr_data_in_column = True
 
 '''
 -----------------------------------------------------
@@ -25,7 +398,7 @@ from scipy import optimize
   
 ;-----------------------------------------------------
 '''
-def read_data(file_mrr):
+def read_mrr2(file_mrr):
 
     # read .ave (text) file using pandas read_fwf function (https://pandas.pydata.org/docs/reference/api/pandas.read_fwf.html)
     df = pd.read_fwf(file_mrr, widths=[3,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7], header=None)

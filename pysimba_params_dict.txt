@@ -1,0 +1,13 @@
+{
+        'Main_Plat_Radar':              'NPOL', 
+        'Secondary_Radars':             ['KDOX'],
+        'Box_center':                   'WFFPad', 
+        'Box_spacing':                  500,
+        'Box_limit':                    5000, 
+        'Vertical_spacing':             250,
+        'Vertical_limit':               6000, 
+        'Ground_obs_temporal_interval': 4,
+        'Data_dir':                     '/Users/cpabla/OneDrive - NASA/Desktop/jupyter_notebooks/Data',
+        'Output_dir':                   '/Users/cpabla/OneDrive - NASA/Desktop/jupyter_notebooks/simba/v1.0',
+        'Out_netcdf':                   True
+}

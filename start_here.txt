@@ -1,0 +1,90 @@
+----------------------------------------------------------------------------------------
+---------------------  The  SIMBA Column-Building Framework ---------------------------
+----------------------------------------------------------------------------------------
+-- Python System for Integrating Multi-platform data to Build the Atmospheric column ---
+--------------------------------------------------------------------------------
+---------- Written By: Charanjit Singh Pabla, charanjit.s.pabla@nasa.gov ---------------
+--------------------------------------------------------------------------------
+README - NOTES ON SETTING UP COLUMN BUILDING FRAMEWORK FROM PACKAGE ARCHIVE
+    AND GETTING THE SYSTEM RUNNING TO CREATE COLUMN .nc FILES
+    --> pySIMBA software v0.1, as of August 24, 2023
+--------------------------------------------------------------------------------
+
+The pySIMBA consists of the following:
+    pysimba_params_dict.txt: Python dictionary that initializes various parameters used in the following programs.
+    pysimba.py: Main program that integrates each platform into a column object or netCDF output.
+    core.py: Classes and functions that setup the column box and object.
+    tools.py: Functions that all other programs use to perform different tasks.
+    ground_radar.py: Function that reads and grids Validation Network Level 2 ground scanning radar data.
+    disdrometer.py: Functions that read and process 2DVD and PARSIVEL data.
+    raingauge.py: Function that read and process .gmin gauge files.
+    mrms.py: Function that reads and process MRMS data.
+    mrr.py: Functions that read, compute DSD, and process MRR .AVE data.
+    gpm.py: Functions that read and process GPM DPR Level 2 .HDF5 data file.
+    write_column.py: Function that outputs a netCDF data file.
+    platform_locations.txt: File that defines parsivel, 2dvd, mrr, and column box latitude/longitude in DMS format.
+
+
+--------------------------------------------------------------------------------
+
+pysimba_params_dict.txt explained...
+
+    Main_plat_Radar: 4-letter indicator of L2 ground scanning radar name 
+    Secondary_Radars: same as above, but can have multiple radars defined with []
+    Box_center: location name (needs to be defined in platform_locations.txt) where to center the column grid
+    Box_spacing: horizontal grid resolution in meters
+    Box_limit: size of the horizontal column box in meters
+    Vertical_spacing: vertical grid resolution in meters
+    Vertical_limit: size of the vertical box limit in meters
+    Ground_obs_temporal_interval: lag time limit (+/-) as an integer value
+    Data_dir: main directory where all platform data is sitting
+    Output_dir: where you want the netCDF file saved (optional)
+    Out_netcdf: set to True if you want netCDF file output and False if you working with python object
+    
+    EXAMPLE:
+        {'Main_Plat_Radar':              'NPOL', #(can be any VN radar; must be defined)
+        'Secondary_Radars':             ['KDOX', 'KAKQ'], #same as above; leave empty if no secondary radars
+        'Box_center':                   'WFFPad', 
+        'Box_spacing':                  500,
+        'Box_limit':                    5000, 
+        'Vertical_spacing':             250,
+        'Vertical_limit':               6000, 
+        'Ground_obs_temporal_interval': 2, #this means data from mrr,2dvd,parsivel,gauges will be extracted at -2, -1, 0, +1, +2 min relative to main plat timestamp 
+        'Data_dir':                     '/home/user/pySIMBA/data',
+        'Output_dir':                   '/home/user/pySIMBA/netcdf', #optinal
+        'Out_netcdf':                   True #program will save netCDF file in Output_dir defined above
+        }
+
+--------------------------------------------------------------------------------
+
+In Example SIMBA Input archives/directories:  SIMBA_WFF_2020_1029.tgz
+    
+    These archives are included to provide a sample of input data from
+    currently supported platforms.  The data for the October 29, 2020 example case.
+
+-----------------------------------------------------------------------------
+
+-->> To run pySIMBA <<-- 
+
+1. Clone pySIMBA repository: https://github.com/GPM-GV/pySIMBA 
+2. Download the sample data: https://gpm-gv.gsfc.nasa.gov/SIMBA/pySIMBA/sample_data/SIMBA_WFF_2020_1029.tgz
+3. Point to the location of the sample data in pysimba_params_dict.txt
+4. Set Out_netcdf to True to output a netCDF data file in pysimba_params_dict.txt
+5. Run by typing pysimba.py 2020 10 29
+6. There will be two output files:
+    column_[Main_plat_radar]_[Box_center]_YYYYMMDD_HHMM.nc
+    column_[Main_plat_radar]_[Box_center]_YYYYMMDD_HHMM.nc_ncHeader.txt
+7. To run in jupyter notebook, import pysimba
+    column = pysimba.BuildColumn(2020, 10, 29) #here column is a python object
+    column.platforms.keys() will give you all the platforms that are ingested
+    column.variables.keys() will give you all the variables for each platform
+
+---------------------------------------------------------------------------------
+Where to get the data?
+
+VN Radars: Contact Charanjit S. Pabla at charanjit.s.pabla@nasa.gov
+GPM Level 2 2ADPR data file - .HDF5 format: https://pps.gsfc.nasa.gov/ppsindex.html
+MRMS Level 2 data files: http://hydro.ou.edu/projects/MRMS_NASA/level2/GPM/ 
+
+
+
