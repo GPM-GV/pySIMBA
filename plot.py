@@ -1,3 +1,5 @@
+#This program will be used for plotting routines for pySIMBA output.
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
