@@ -3,6 +3,7 @@ System for Integrating Multiplatform Data to Build the Atmospheric Column (SIMBA
 
 pySIMBA is a software that integrates multiple precipitation sensors from the 
 ground and space into a user-defined Cartesian grid and outputs a netCDF data file.
+Users can work in jupyter notebook as well and initialize python object to work off.
 This product file is the initial step to establish an easy method to 
 conduct precipitation science and cross-validate sensors on a common coordinate system. 
 Python based SIMBA was adapted from Interactive Data Language (IDL) code developed by 
@@ -40,9 +41,9 @@ If you would like to test with data in the notebook, download [sample_data](http
 
 On command line,
     
-    pysimba.py YYYY MM DD [--params_dict PARAMS_DICT]
+    pysimba.py YYYY MM DD
     
-    pysimba.py 2022 10 29 --params_dict wff_center_params_dict.txt
+    pysimba.py 2020 10 29
     
 Required Parameters:
 
@@ -52,20 +53,16 @@ Required Parameters:
 
     DD - 2 digit day
 
-Optional Parameters:
-
-    --params_dict params_dict.txt - Parameters dictionary to define the column grid
-
 # Output from pysimba:
 
 There are two files:
 
-    column_[main_plat_name]_[center_on]_YYYYMMDD_HHMM.nc
+    column_[Main_Plat_Radar]_[Box_center_]_YYYYMMDD_HHMM.nc
 
-    column_[main_plat_name]_[center_on]_YYYYMMDD_HHMM.nc_ncHeader.txt
+    column_[Main_Plat_Radar]_[Box_center_]_YYYYMMDD_HHMM.nc_ncHeader.txt
 
 Example output:
 
-    column_NPOL_WFFPad_20201029_0736.nc
+    column_NPOL_WFFPad_20201029_0738.nc
 
-    column_NPOL_WFFPad_20201029_0736.nc_ncHeader.txt
+    column_NPOL_WFFPad_20201029_0738.nc_ncHeader.txt
