@@ -1,14 +1,10 @@
-----------------------------------------------------------------------------------------
----------------------  The  SIMBA Column-Building Framework ---------------------------
-----------------------------------------------------------------------------------------
--- Python System for Integrating Multi-platform data to Build the Atmospheric column ---
---------------------------------------------------------------------------------
----------- Written By: Charanjit Singh Pabla, charanjit.s.pabla@nasa.gov ---------------
---------------------------------------------------------------------------------
-README - NOTES ON SETTING UP COLUMN BUILDING FRAMEWORK FROM PACKAGE ARCHIVE
-    AND GETTING THE SYSTEM RUNNING TO CREATE COLUMN .nc FILES
-    --> pySIMBA software v0.1, as of August 24, 2023
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
+-- Python System for Integrating Multi-platform data to Build the Atmospheric column ------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
+-- Written By: Charanjit Singh Pabla, charanjit.s.pabla@nasa.gov --------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------
+-- pySIMBA software v1.0, as of August 24, 2023
+-------------------------------------------------------------------------------------------------------------------------
 
 The pySIMBA consists of the following:
     pysimba_params_dict.txt: Python dictionary that initializes various parameters used in the following programs.
@@ -24,8 +20,7 @@ The pySIMBA consists of the following:
     write_column.py: Function that outputs a netCDF data file.
     platform_locations.txt: File that defines parsivel, 2dvd, mrr, and column box latitude/longitude in DMS format.
 
-
---------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------
 
 pysimba_params_dict.txt explained...
 
@@ -55,16 +50,9 @@ pysimba_params_dict.txt explained...
         'Out_netcdf':                   True #program will save netCDF file in Output_dir defined above
         }
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------
 
-In Example SIMBA Input archives/directories:  SIMBA_WFF_2020_1029.tgz
-    
-    These archives are included to provide a sample of input data from
-    currently supported platforms.  The data for the October 29, 2020 example case.
-
------------------------------------------------------------------------------
-
--->> To run pySIMBA <<-- 
+How to run pySIMBA?
 
 1. Clone pySIMBA repository: https://github.com/GPM-GV/pySIMBA 
 2. Download the sample data: https://gpm-gv.gsfc.nasa.gov/SIMBA/pySIMBA/sample_data/SIMBA_WFF_2020_1029.tgz
@@ -79,12 +67,19 @@ In Example SIMBA Input archives/directories:  SIMBA_WFF_2020_1029.tgz
     column.platforms.keys() will give you all the platforms that are ingested
     column.variables.keys() will give you all the variables for each platform
 
----------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------
 Where to get the data?
 
-VN Radars: Contact Charanjit S. Pabla at charanjit.s.pabla@nasa.gov
+VN Radars: https://pmm-gv.gsfc.nasa.gov/pub/gpmarchive/Radar/VN/
 GPM Level 2 2ADPR data file - .HDF5 format: https://pps.gsfc.nasa.gov/ppsindex.html
-MRMS Level 2 data files: http://hydro.ou.edu/projects/MRMS_NASA/level2/GPM/ 
+MRMS Level 2 data files: http://hydro.ou.edu/projects/MRMS_NASA/level2/GPM/
+------------------
+User Notes
+
+-- If user uses own instrument data, you must update platform_locations.txt for parsivel,
+   2dvd, and mrr instruments.
+-- If you use a different geographic location, you must update platform_locations.txt
+   with the appropriate latitude and longitude.
 
 
 

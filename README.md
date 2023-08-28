@@ -37,6 +37,9 @@ Clone pysimba repository:
     
 If you would like to test with data in the notebook, download [sample_data](https://gpm-gv.gsfc.nasa.gov/SIMBA/pySIMBA/sample_data/SIMBA_WFF_2020_1029.tgz).
 
+# Getting Started
+We recommend users to read start_here.txt file to get an overview on the components of pySIMBA.
+
 # Running pysimba
 
 On command line,
