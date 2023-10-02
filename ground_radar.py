@@ -142,14 +142,14 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
         radar_VR_badval = DS.VR.attrs['_FillValue']
         radar_VR_name = DS.VR.attrs['long_name'] 
         radar_VR_units = DS.VR.attrs['units']
-    if 'RR' in DS.keys():
-        radar_RR = DS.RR
-        radar_RR_badval = DS.RR.attrs['_FillValue']
+    #if 'RR' in DS.keys():
+    #    radar_RR = DS.RR
+    #    radar_RR_badval = DS.RR.attrs['_FillValue']
         #radar_RR_name = DS.RR.attrs['long_name'] 
         #radar_RR_units = DS.RR.attrs['units']
-    if 'RP' in DS.keys():
-        radar_RP = DS.RP
-        radar_RP_badval = DS.RP.attrs['_FillValue']
+    #if 'RP' in DS.keys():
+    #    radar_RP = DS.RP
+    #    radar_RP_badval = DS.RP.attrs['_FillValue']
         #radar_RP_name = DS.RP.attrs['long_name'] 
         #radar_RP_units = DS.RP.attrs['units']
     if 'RC' in DS.keys():
@@ -243,7 +243,7 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
 
     # Replace flagged/bad data values in each array with NaNs so
     # not using the bad data flag value in interpolation
-    if 'ZZ' in DS.keys():radar_ZZ = sim.bad2nan(radar_ZZ, radar_ZZ_badval)
+    if 'ZZ' in DS.keys() or 'DZ' in DS.keys():radar_ZZ = sim.bad2nan(radar_ZZ, radar_ZZ_badval)
     if 'CZ' in DS.keys():radar_CZ = sim.bad2nan(radar_CZ, radar_CZ_badval)
     if 'DR' in DS.keys():radar_DR = sim.bad2nan(radar_DR, radar_DR_badval)
     if 'RH' in DS.keys():radar_RH = sim.bad2nan(radar_RH, radar_RH_badval)
@@ -252,8 +252,8 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
     if 'SQ' in DS.keys(): radar_SQ = sim.bad2nan(radar_SQ, radar_SQ_badval)
     if 'SW' in DS.keys():radar_SW = sim.bad2nan(radar_SW, radar_SW_badval)
     if 'VR' in DS.keys():radar_VR = sim.bad2nan(radar_VR, radar_VR_badval)
-    if 'RR' in DS.keys(): radar_RR = sim.bad2nan(radar_RR, radar_RR_badval)
-    if 'RP' in DS.keys():radar_RP = sim.bad2nan(radar_RP, radar_RP_badval)
+    #if 'RR' in DS.keys(): radar_RR = sim.bad2nan(radar_RR, radar_RR_badval)
+    #if 'RP' in DS.keys():radar_RP = sim.bad2nan(radar_RP, radar_RP_badval)
     if 'RC' in DS.keys():radar_RC = sim.bad2nan(radar_RC, radar_RC_badval)
     if 'D0' in DS.keys(): radar_D0 = sim.bad2nan(radar_D0, radar_D0_badval)
     if 'NW' in DS.keys():radar_NW = sim.bad2nan(radar_NW, radar_NW_badval)
@@ -275,7 +275,7 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
             # there is only 1 height sub for 0 km AGL
             # set all field values at ht of 0 km to NaNs
             # dimensions for radar_xx are [time, z, lat, lon] --> [time, z, y, x]; time dim is 1
-            if 'ZZ' in DS.keys():radar_ZZ[0,zero_ht_sub,:,:] = np.nan
+            if 'ZZ' in DS.keys() or 'DZ' in DS.keys():radar_ZZ[0,zero_ht_sub,:,:] = np.nan
             if 'CZ' in DS.keys():radar_CZ[0,zero_ht_sub,:,:] = np.nan
             if 'DR' in DS.keys():radar_DR[0,zero_ht_sub,:,:] = np.nan
             if 'RH' in DS.keys():radar_RH[0,zero_ht_sub,:,:] = np.nan
@@ -285,11 +285,11 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
             if 'NW' in DS.keys():radar_NW[0,zero_ht_sub,:,:] = np.nan
             if 'VR' in DS.keys():radar_VR[0,zero_ht_sub,:,:] = np.nan
             if 'RC' in DS.keys():radar_RC[0,zero_ht_sub,:,:] = np.nan
-            if 'RP' in DS.keys():radar_RP[0,zero_ht_sub,:,:] = np.nan
+            #if 'RP' in DS.keys():radar_RP[0,zero_ht_sub,:,:] = np.nan
             if 'DM' in DS.keys():radar_DM[0,zero_ht_sub,:,:] = np.nan
             if 'FH' in DS.keys():radar_FH[0,zero_ht_sub,:,:] = np.nan
             if 'SQ' in DS.keys(): radar_SQ[0,zero_ht_sub,:,:] = np.nan
-            if 'RR' in DS.keys(): radar_RR[0,zero_ht_sub,:,:] = np.nan
+            #if 'RR' in DS.keys(): radar_RR[0,zero_ht_sub,:,:] = np.nan
             if 'D0' in DS.keys(): radar_D0[0,zero_ht_sub,:,:] = np.nan
             if 'N2' in DS.keys(): radar_N2[0,zero_ht_sub,:,:] = np.nan
             if 'FZ' in DS.keys(): radar_FZ[0,zero_ht_sub,:,:] = np.nan
@@ -346,7 +346,7 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
         #pdb.set_trace()
         # with subscripts for each dir, pull out data in column box grid:
         # dimensions for npol_xx are [time, z, lat, lon] --> col_npol_xx [z, y, x]; time dim is 1
-        if 'ZZ' in DS.keys():col_radar_ZZ = radar_ZZ[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
+        if 'ZZ' in DS.keys() or 'DZ' in DS.keys():col_radar_ZZ = radar_ZZ[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
         if 'CZ' in DS.keys():col_radar_CZ = radar_CZ[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
         if 'DR' in DS.keys():col_radar_DR = radar_DR[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
         if 'RH' in DS.keys():col_radar_RH = radar_RH[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
@@ -355,8 +355,8 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
         if 'SQ' in DS.keys(): col_radar_SQ = radar_SQ[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
         if 'SW' in DS.keys():col_radar_SW = radar_SW[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
         if 'VR' in DS.keys():col_radar_VR = radar_VR[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
-        if 'RR' in DS.keys(): col_radar_RR = radar_RR[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
-        if 'RP' in DS.keys():col_radar_RP = radar_RP[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
+        #if 'RR' in DS.keys(): col_radar_RR = radar_RR[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
+        #if 'RP' in DS.keys():col_radar_RP = radar_RP[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
         if 'RC' in DS.keys():col_radar_RC = radar_RC[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]  
         if 'D0' in DS.keys(): col_radar_D0 = radar_D0[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
         if 'NW' in DS.keys():col_radar_NW = radar_NW[0, pull_z_start:pull_z_end, pull_y_start:pull_y_end, pull_x_start:pull_x_end]
@@ -421,8 +421,8 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
         if 'SQ' in DS.keys(): hold_SQ = radar_SQ[0,pull_z_start:pull_z_end,:,:]
         hold_SW = radar_SW[0,pull_z_start:pull_z_end,:,:]
         hold_VR = radar_VR[0,pull_z_start:pull_z_end,:,:]
-        if 'RR' in DS.keys(): hold_RR = radar_RR[0,pull_z_start:pull_z_end,:,:]
-        hold_RP = radar_RP[0,pull_z_start:pull_z_end,:,:]
+        #if 'RR' in DS.keys(): hold_RR = radar_RR[0,pull_z_start:pull_z_end,:,:]
+        #hold_RP = radar_RP[0,pull_z_start:pull_z_end,:,:]
         hold_RC = radar_RC[0,pull_z_start:pull_z_end,:,:]
         if 'D0' in DS.keys(): hold_D0 = radar_D0[0,pull_z_start:pull_z_end,:,:]
         hold_NW = radar_NW[0,pull_z_start:pull_z_end,:,:]
@@ -442,8 +442,8 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
         if 'SQ' in DS.keys(): col_radar_SQ = np.zeros((len(new_x_subs),len(new_y_subs),pull_z_end - pull_z_start +1))
         col_radar_SW = np.zeros((len(new_x_subs),len(new_y_subs),pull_z_end - pull_z_start +1))
         col_radar_VR = np.zeros((len(new_x_subs),len(new_y_subs),pull_z_end - pull_z_start +1))
-        if 'RR' in DS.keys(): col_radar_RR = np.zeros((len(new_x_subs),len(new_y_subs),pull_z_end - pull_z_start +1))
-        col_radar_RP = np.zeros((len(new_x_subs),len(new_y_subs),pull_z_end - pull_z_start +1))
+        #if 'RR' in DS.keys(): col_radar_RR = np.zeros((len(new_x_subs),len(new_y_subs),pull_z_end - pull_z_start +1))
+        #col_radar_RP = np.zeros((len(new_x_subs),len(new_y_subs),pull_z_end - pull_z_start +1))
         col_radar_RC = np.zeros((len(new_x_subs),len(new_y_subs),pull_z_end - pull_z_start +1))  
         if 'D0' in DS.keys(): col_radar_D0 = np.zeros((len(new_x_subs),len(new_y_subs),pull_z_end - pull_z_start +1))
         col_radar_NW = np.zeros((len(new_x_subs),len(new_y_subs),pull_z_end - pull_z_start +1))
@@ -476,17 +476,22 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
     if 'SQ' not in DS.keys():
        col_radar_SQ = col_radar_ZZ*0.0
        col_radar_SQ = sim.bad2nan(col_radar_SQ, 0.0)
-    if 'RR' not in DS.keys():
-       col_radar_RR = col_radar_ZZ*0.0
-       col_radar_RR = sim.bad2nan(col_radar_RR, 0.0)
+    if 'RC' not in DS.keys():
+       col_radar_RC = col_radar_ZZ*0.0
+       col_radar_RC = sim.bad2nan(col_radar_RC, 0.0)
     if 'D0' not in DS.keys():
-       #print('no D0')
        col_radar_D0 = col_radar_ZZ*0.0
        col_radar_D0 = sim.bad2nan(col_radar_D0, 0.0)
     if 'N2' not in DS.keys():
-       #print('no N2')
        col_radar_N2 = col_radar_ZZ*0.0
        col_radar_N2 = sim.bad2nan(col_radar_N2, 0.0)
+    if 'NW' not in DS.keys():
+       col_radar_NW = col_radar_ZZ*0.0
+       col_radar_NW = sim.bad2nan(col_radar_NW, 0.0)
+    if 'DM' not in DS.keys():
+       #print('no N2')
+       col_radar_DM= col_radar_ZZ*0.0
+       col_radar_DM = sim.bad2nan(col_radar_DM, 0.0)
     if 'FZ' not in DS.keys():
        col_radar_FZ = col_radar_ZZ*0.0
        col_radar_FZ = sim.bad2nan(col_radar_FZ, 0.0)
@@ -496,6 +501,14 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
     if 'MI' not in DS.keys():
        col_radar_MI = col_radar_ZZ*0.0
        col_radar_MI = sim.bad2nan(col_radar_MI, 0.0)
+    if 'SW' not in DS.keys():
+        col_radar_SW = col_radar_ZZ*0.0
+        col_radar_SW = sim.bad2nan(col_radar_SW, 0.0)
+        radar_SW_units = 'N/A'
+        radar_SW_name = 'N/A'
+    if 'FH' not in DS.keys():
+       col_radar_FH = col_radar_ZZ*0.0
+       col_radar_FH = sim.bad2nan(col_radar_FH, 0.0)
 
     #add radar_info to object
     column.add_platform_to_object(radar_info, plat_name=f'lev2_radar_{radarID}')
@@ -555,17 +568,17 @@ def grid_radar_for_column(radar_file, main_plat_datetime, radarID, box_params, c
                                            long_name=radar_VR_name,
                                            badval=np.nan)
 
-    column.add_variable_to_object(col_radar_RR.data, 
-                                           var_name=f'lev2_{radarID}_RR',
-                                           units=radar_R_units,
-                                           long_name=radar_RR_name,
-                                           badval=np.nan)
+    #column.add_variable_to_object(col_radar_RR.data, 
+    #                                       var_name=f'lev2_{radarID}_RR',
+    #                                       units=radar_R_units,
+    #                                       long_name=radar_RR_name,
+    #                                       badval=np.nan)
 
-    column.add_variable_to_object(col_radar_RP.data, 
-                                           var_name=f'lev2_{radarID}_RP',
-                                           units=radar_R_units,
-                                           long_name=radar_RP_name,
-                                           badval=np.nan)
+    #column.add_variable_to_object(col_radar_RP.data, 
+    #                                       var_name=f'lev2_{radarID}_RP',
+    #                                       units=radar_R_units,
+    #                                       long_name=radar_RP_name,
+    #                                       badval=np.nan)
 
     column.add_variable_to_object(col_radar_RC.data, 
                                            var_name=f'lev2_{radarID}_RC',
